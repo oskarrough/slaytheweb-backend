@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "cors": "^2.8.5",
+    "matrix-js-sdk": "^26.2.0",
     "next": "12.2.5",
     "react": "18.2.0",
     "react-dom": "18.2.0"

@@ -21,15 +21,11 @@ export default async function handler(req, res) {
 	res.status(200).json({msg:'hm nop'})
 }
 
-async function postRunToDatabase(state) {
+async function postRunToDatabase(run) {
 	const airtableFormat = {
 		records: [
 			{
-				fields: {
-					name: 'PlayerX',
-					status: 'Win',
-					state: JSON.stringify(state)
-				}
+				fields: run
 			}
 		]
 	}

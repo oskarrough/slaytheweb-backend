@@ -3,49 +3,69 @@ import Cors from 'cors'
 const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY
 
 const cors = Cors({
-	methods: ['GET', 'POST', 'HEAD']
+  methods: ['GET', 'POST', 'HEAD']
 })
 
 export default async function handler(req, res) {
-	await runMiddleware(req, res, cors)
-	if (!AIRTABLE_API_KEY) res.status(500).json({error: 'missing api key'})
-	if (req.method === 'GET') {
-		const result = await fetchRuns()
-		const runs = await result.json()
-  	return res.status(200).json({runs})
-	}
-	if (req.method === 'POST') {
-		const result = await postRunToDatabase(req.body)
-  	return res.status(201).json({message: 'saved'})
-	}
-	res.status(200).json({msg:'hm nop'})
+  await runMiddleware(req, res, cors)
+
+  if (!AIRTABLE_API_KEY) res.status(500).json({error: 'missing api key'})
+
+  if (req.method === 'GET') {
+    const runs = await fetchRuns()
+    return res.status(200).json({runs})
+  }
+
+  if (req.method === 'POST') {
+    const result = await postRunToDatabase(req.body)
+    console.log(result)
+    return res.status(result.status).json({status: result.status, statusText: result.statusText})
+  }
+
+  res.status(200).json({msg:'hm nop'})
 }
 
-async function postRunToDatabase(run) {
-	const airtableFormat = {
-		records: [
-			{
-				fields: run
-			}
-		]
-	}
-	return fetch('https://api.airtable.com/v0/apph0njNBz1Qj9FSj/Runs', {
-		method: 'POST',
-		headers: {
-			Authorization: `Bearer ${AIRTABLE_API_KEY}`,
-			Accept: 'application/json',
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify(airtableFormat)
-	})
+async function postRunToDatabase(body) {
+  console.log('past', body.past)
+  const airtableFormat = {
+    records: [
+      {
+        fields: {
+          date: new Date().getTime(),
+          name: body.name,
+          win: body.win,
+          state: JSON.stringify(body.state),
+          // Disabled because Airtable returns unprocessable entity with it, sometimes
+          past: JSON.stringify(body.past)
+        }
+      }
+    ]
+  }
+  return fetch('https://api.airtable.com/v0/apph0njNBz1Qj9FSj/Runs', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+      Accept: 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(airtableFormat)
+  })
 }
 
 async function fetchRuns(state) {
-	return fetch('https://api.airtable.com/v0/apph0njNBz1Qj9FSj/Runs?maxRecords=999&view=Grid%20view', {
-		headers: {
-			Authorization: `Bearer ${AIRTABLE_API_KEY}`,
-		}
-	})
+  const res = await fetch('https://api.airtable.com/v0/apph0njNBz1Qj9FSj/Runs?maxRecords=999&view=Grid%20view', {
+    headers: {
+      Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+    }
+  })
+  const data = await res.json()
+  return data.records.map(x => {
+    return {
+      created: x.fields.created,
+      state: x.fields.state ? JSON.parse(x.fields.state) : null,
+      past: x.fields.past ? JSON.parse(x.fields.past) : null
+    }
+  })
 }
 
 // Helper method to wait for a middleware to execute before continuing

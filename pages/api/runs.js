@@ -18,7 +18,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'POST') {
     const result = await postRunToDatabase(req.body)
-    console.log(result)
+    console.log(result.statusText)
     return res.status(result.status).json({status: result.status, statusText: result.statusText})
   }
 
@@ -26,7 +26,6 @@ export default async function handler(req, res) {
 }
 
 async function postRunToDatabase(body) {
-  console.log('past', body.past)
   const airtableFormat = {
     records: [
       {
@@ -35,8 +34,7 @@ async function postRunToDatabase(body) {
           name: body.name,
           win: body.win,
           state: JSON.stringify(body.state),
-          // Disabled because Airtable returns unprocessable entity with it, sometimes
-          past: JSON.stringify(body.past)
+          past: JSON.stringify(body.past?.length),
         }
       }
     ]
@@ -61,9 +59,11 @@ async function fetchRuns(state) {
   const data = await res.json()
   return data.records.map(x => {
     return {
-      created: x.fields.created,
+      date: x.fields.date,
+      name: x.fields.name,
+      win: x.fields.win || false,
       state: x.fields.state ? JSON.parse(x.fields.state) : null,
-      past: x.fields.past ? JSON.parse(x.fields.past) : null
+      past: x.fields.past ? JSON.parse(x.fields.past) : null,
     }
   })
 }

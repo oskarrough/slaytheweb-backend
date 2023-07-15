@@ -18,7 +18,6 @@ export default async function handler(req, res) {
 
   if (req.method === 'POST') {
     const result = await postRunToDatabase(req.body)
-    console.log(result.statusText)
     return res.status(result.status).json({status: result.status, statusText: result.statusText})
   }
 
@@ -30,11 +29,11 @@ async function postRunToDatabase(body) {
     records: [
       {
         fields: {
-          date: new Date().getTime(),
+          createdAt: body.state.createdAt,
           name: body.name,
           win: body.win,
           state: JSON.stringify(body.state),
-          past: JSON.stringify(body.past?.length),
+          past: JSON.stringify(body.past),
         }
       }
     ]
@@ -50,7 +49,7 @@ async function postRunToDatabase(body) {
   })
 }
 
-async function fetchRuns(state) {
+async function fetchRuns() {
   const res = await fetch('https://api.airtable.com/v0/apph0njNBz1Qj9FSj/Runs?maxRecords=999&view=Grid%20view', {
     headers: {
       Authorization: `Bearer ${AIRTABLE_API_KEY}`,
@@ -59,7 +58,7 @@ async function fetchRuns(state) {
   const data = await res.json()
   return data.records.map(x => {
     return {
-      date: x.fields.date,
+      createdAt: x.fields.createdAt,
       name: x.fields.name,
       win: x.fields.win || false,
       state: x.fields.state ? JSON.parse(x.fields.state) : null,
@@ -76,7 +75,6 @@ function runMiddleware(req, res, fn) {
       if (result instanceof Error) {
         return reject(result)
       }
-
       return resolve(result)
     })
   })

@@ -25,6 +25,15 @@ export default async function handler(req, res) {
 }
 
 async function postRunToDatabase(body) {
+  const trimmedPast = body.past.list.map(item => {
+    return {
+      action: item.action,
+      state: {
+        player: item.state.player,
+        turn: item.state.turn
+      }
+    }
+  })
   const airtableFormat = {
     records: [
       {
@@ -33,7 +42,7 @@ async function postRunToDatabase(body) {
           name: body.name,
           win: body.win,
           state: JSON.stringify(body.state),
-          past: JSON.stringify(body.past),
+          past: JSON.stringify(trimmedPast),
         }
       }
     ]

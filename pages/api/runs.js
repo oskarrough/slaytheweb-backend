@@ -1,79 +1,47 @@
-import Cors from 'cors'
-
-const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY
+import Cors from "cors"
+import { client } from "../../src/db"
 
 const cors = Cors({
-  methods: ['GET', 'POST', 'HEAD']
+  methods: ["GET", "POST", "HEAD"],
 })
 
 export default async function handler(req, res) {
   await runMiddleware(req, res, cors)
 
-  if (!AIRTABLE_API_KEY) res.status(500).json({error: 'missing api key'})
-
-  if (req.method === 'GET') {
+  if (req.method === "GET") {
     const runs = await fetchRuns()
-    return res.status(200).json({runs})
+    return res.status(200).json({ runs })
   }
 
-  if (req.method === 'POST') {
+  if (req.method === "POST") {
     const result = await postRunToDatabase(req.body)
-    return res.status(result.status).json({status: result.status, statusText: result.statusText})
+    return res.status(200).json({msg: 'ok', result})
   }
 
-  res.status(200).json({msg:'hm nop'})
-}
-
-async function postRunToDatabase(body) {
-  const trimmedPast = body.past.list.map(item => {
-    return {
-      action: item.action,
-      state: {
-        player: item.state.player,
-        turn: item.state.turn
-      }
-    }
-  })
-  const airtableFormat = {
-    records: [
-      {
-        fields: {
-          createdAt: body.state.createdAt,
-          name: body.name,
-          win: body.win,
-          state: JSON.stringify(body.state),
-          past: JSON.stringify(trimmedPast),
-        }
-      }
-    ]
-  }
-  return fetch('https://api.airtable.com/v0/apph0njNBz1Qj9FSj/Runs', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${AIRTABLE_API_KEY}`,
-      Accept: 'application/json',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(airtableFormat)
-  })
+  res.status(200).json({ msg: "hm nop" })
 }
 
 async function fetchRuns() {
-  const res = await fetch('https://api.airtable.com/v0/apph0njNBz1Qj9FSj/Runs?maxRecords=999&view=Grid%20view', {
-    headers: {
-      Authorization: `Bearer ${AIRTABLE_API_KEY}`,
-    }
-  })
-  const data = await res.json()
-  return data.records.map(x => {
-    return {
-      createdAt: x.fields.createdAt,
-      name: x.fields.name,
-      win: x.fields.win || false,
-      state: x.fields.state ? JSON.parse(x.fields.state) : null,
-      past: x.fields.past ? JSON.parse(x.fields.past) : null,
-    }
-  })
+  const res = await client.execute("select * from runs")
+  return parseData(res)
+}
+
+async function postRunToDatabase(body) {
+  try {
+    const what = await client.batch([
+      {
+        sql: 'insert or ignore into players (name) values(:name)',
+        args: { name: body.player },
+      },
+      {
+        sql: 'insert into runs (player, won, game_state) values(:name, :won, :gameState)',
+        args: { name: body.player, won: body.won, gameState: body.gameState },
+      },
+    ])
+    return what
+  } catch (e) {
+    console.error(e)
+  }
 }
 
 // Helper method to wait for a middleware to execute before continuing
@@ -87,4 +55,16 @@ function runMiddleware(req, res, fn) {
       return resolve(result)
     })
   })
+}
+
+function parseData(input) {
+    const columns = input.columns
+    const rows = input.rows
+    return rows.map(row => {
+        let obj = {}
+        for (let i = 0; i < columns.length; i++) {
+            obj[columns[i]] = row[i]
+        }
+        return obj
+    })
 }

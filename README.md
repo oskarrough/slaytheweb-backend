@@ -1,5 +1,7 @@
 # Slay the Web backend
 
+Made for https://github.com/oskarrough/slay-the-web.
+
 Contains two API endpoints:
 
 ```

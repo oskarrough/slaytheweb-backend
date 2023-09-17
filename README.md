@@ -7,6 +7,28 @@ GET /api/runs - returns a list of maximum 100 runs
 POST /api/runs  - record a save game 
 ```
 
+## How is it made?
+
+`libsql` (fork of sqlite) running on a `sqld` server hosted by turso.tech.
+
+- https://docs.turso.tech/reference/client-access/javascript-typescript-sdk
+
+
+```
+curl -X POST --header 'Content-Type: application/json' -d '{"player": "XX", "won": 1}' http://localhost:3000/api/runs
+```
+
+```
+turso db shell rare-neon
+.read schema.sql
+select * from runs;
+```
+
+### SQLite extensions
+
+- https://docs.turso.tech/reference/extensions
+- https://github.com/nalgeon/sqlean/blob/main/docs/uuid.md
+
 ## Development
 
 Link the project with Vercel in order to get the environment variables:

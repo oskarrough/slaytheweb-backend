@@ -1,90 +1,91 @@
 import Cors from 'cors'
-
-const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY
+import { client } from '../../src/db'
 
 const cors = Cors({
-  methods: ['GET', 'POST', 'HEAD']
+	methods: ['GET', 'POST', 'HEAD'],
 })
 
 export default async function handler(req, res) {
-  await runMiddleware(req, res, cors)
+	await runMiddleware(req, res, cors)
 
-  if (!AIRTABLE_API_KEY) res.status(500).json({error: 'missing api key'})
+	if (req.method === 'GET') {
+		const runs = await fetchRuns()
+		return res.status(200).json({ runs })
+	}
 
-  if (req.method === 'GET') {
-    const runs = await fetchRuns()
-    return res.status(200).json({runs})
-  }
+	if (req.method === 'POST') {
+		const result = await postRunToDatabase(req.body)
+		return res.status(200).json({ msg: 'ok', result })
+	}
 
-  if (req.method === 'POST') {
-    const result = await postRunToDatabase(req.body)
-    return res.status(result.status).json({status: result.status, statusText: result.statusText})
-  }
-
-  res.status(200).json({msg:'hm nop'})
-}
-
-async function postRunToDatabase(body) {
-  const trimmedPast = body.past.list.map(item => {
-    return {
-      action: item.action,
-      state: {
-        player: item.state.player,
-        turn: item.state.turn
-      }
-    }
-  })
-  const airtableFormat = {
-    records: [
-      {
-        fields: {
-          createdAt: body.state.createdAt,
-          name: body.name,
-          win: body.win,
-          state: JSON.stringify(body.state),
-          past: JSON.stringify(trimmedPast),
-        }
-      }
-    ]
-  }
-  return fetch('https://api.airtable.com/v0/apph0njNBz1Qj9FSj/Runs', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${AIRTABLE_API_KEY}`,
-      Accept: 'application/json',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(airtableFormat)
-  })
+	res.status(200).json({ msg: 'hm nop' })
 }
 
 async function fetchRuns() {
-  const res = await fetch('https://api.airtable.com/v0/apph0njNBz1Qj9FSj/Runs?maxRecords=999&view=Grid%20view', {
-    headers: {
-      Authorization: `Bearer ${AIRTABLE_API_KEY}`,
-    }
-  })
-  const data = await res.json()
-  return data.records.map(x => {
-    return {
-      createdAt: x.fields.createdAt,
-      name: x.fields.name,
-      win: x.fields.win || false,
-      state: x.fields.state ? JSON.parse(x.fields.state) : null,
-      past: x.fields.past ? JSON.parse(x.fields.past) : null,
-    }
-  })
+	const res = await client.execute(`
+    select
+      id, 
+      player, 
+      --json_extract(game_state, "$.createdAt") as createdAt,
+      --json_extract(game_state, "$.endedAt") as endedAt,
+      --json_extract(game_state, "$.turn") as turn, 
+      --json_extract(game_state, "$.won") as won, 
+      game_state as gameState,
+      game_past as gamePast
+    from runs
+    where game_state is not null
+  `)
+	const parsed = parseData(res)
+	return parsed.map((run) => {
+		run.gameState = JSON.parse(run.gameState ?? '{}')
+		run.gamePast = JSON.parse(run.gamePast ?? '[]')
+		return run
+	})
+}
+
+async function postRunToDatabase(body) {
+	try {
+		const what = await client.batch([
+			{
+				sql: 'insert or ignore into players (name) values(:name)',
+				args: { name: body.player },
+			},
+			{
+				sql: 'insert into runs (player, game_state, game_past) values(:player, :gameState, :gamePast)',
+				args: {
+					player: body.player,
+					gameState: JSON.stringify(body.gameState),
+					gamePast: JSON.stringify(body.gamePast),
+				},
+			},
+		])
+		return what
+	} catch (e) {
+		console.error(e)
+	}
 }
 
 // Helper method to wait for a middleware to execute before continuing
 // And to throw an error when an error happens in a middleware
 function runMiddleware(req, res, fn) {
-  return new Promise((resolve, reject) => {
-    fn(req, res, (result) => {
-      if (result instanceof Error) {
-        return reject(result)
-      }
-      return resolve(result)
-    })
-  })
+	return new Promise((resolve, reject) => {
+		fn(req, res, (result) => {
+			if (result instanceof Error) {
+				return reject(result)
+			}
+			return resolve(result)
+		})
+	})
+}
+
+function parseData(input) {
+	const columns = input.columns
+	const rows = input.rows
+	return rows.map((row) => {
+		let obj = {}
+		for (let i = 0; i < columns.length; i++) {
+			obj[columns[i]] = row[i]
+		}
+		return obj
+	})
 }

@@ -1,15 +1,15 @@
 # Slay the Web backend
 
-Made for https://github.com/oskarrough/slay-the-web.
+A node.js backend API for [Slay the Web](https://github.com/oskarrough/slaytheweb) used to post and store highscores.
 
-Contains two API endpoints:
+It is deployed and live on https://api.slaytheweb.cards
+
+It contains two API endpoints:
 
 ```
 GET /api/runs - returns all submitted runs
 POST /api/runs  - record a run
 ```
-
-- https://api.slaytheweb.cards
 
 ## How is it made?
 

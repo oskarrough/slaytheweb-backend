@@ -4,13 +4,10 @@ export default function Home() {
   return (
     <div>
       <Head>
-        <title>R</title>
+        <title>Slay the Web API</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
-      <main>
-        <p>Are you lost?</p>
-      </main>
+      <p>Are you lost? Most probably.</p>
     </div>
   )
 }

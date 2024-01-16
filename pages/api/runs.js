@@ -9,19 +9,19 @@ export default async function handler(req, res) {
 	await runMiddleware(req, res, cors)
 
 	if (req.method === 'GET') {
-		const runs = await fetchRuns()
+		const runs = await getRuns()
 		return res.status(200).json({ runs })
 	}
 
 	if (req.method === 'POST') {
-		const result = await postRunToDatabase(req.body)
+		const result = await postRun(req.body)
 		return res.status(200).json({ msg: 'ok', result })
 	}
 
 	res.status(200).json({ msg: 'hm nop' })
 }
 
-async function fetchRuns() {
+async function getRuns() {
 	const res = await client.execute(`
     select
       id, 
@@ -30,8 +30,8 @@ async function fetchRuns() {
       --json_extract(game_state, "$.endedAt") as endedAt,
       --json_extract(game_state, "$.turn") as turn, 
       --json_extract(game_state, "$.won") as won, 
-      game_state as gameState,
-      game_past as gamePast
+      game_state as gameState
+      --game_past as gamePast
     from runs
     where game_state is not null
   `)
@@ -43,7 +43,7 @@ async function fetchRuns() {
 	})
 }
 
-async function postRunToDatabase(body) {
+async function postRun(body) {
 	try {
 		const what = await client.batch([
 			{

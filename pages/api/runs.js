@@ -37,7 +37,7 @@ async function getRuns() {
   `)
 	const parsed = parseData(res)
 	return parsed.map((run) => {
-		run.gameState = JSON.parse(run.gameState ?? '{}')
+		run.gameState = minimizeGameState(JSON.parse(run.gameState)) 
 		run.gamePast = JSON.parse(run.gamePast ?? '[]')
 		return run
 	})
@@ -54,7 +54,7 @@ async function postRun(body) {
 				sql: 'insert into runs (player, game_state, game_past) values(:player, :gameState, :gamePast)',
 				args: {
 					player: body.player,
-					gameState: JSON.stringify(body.gameState),
+					gameState: JSON.stringify(minimizeGameState(body.gameState)),
 					gamePast: JSON.stringify(body.gamePast),
 				},
 			},
@@ -89,3 +89,20 @@ function parseData(input) {
 		return obj
 	})
 }
+
+// Apparently it's too much data to send around, so I try to remove a bit.
+function minimizeGameState(state) {
+	const mini = {...state}
+	delete mini.dungeon?.graph
+	delete mini.dungeon?.paths
+	delete mini.dungeon?.pathTaken
+	delete mini.drawPile
+	delete mini.hand
+	delete mini.discardPile
+	delete mini.exhaustPile
+	mini.deck = mini.deck.map(card => {
+		return card.name
+	})
+	return mini
+}
+

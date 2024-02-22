@@ -4,10 +4,11 @@ A node.js backend API for [Slay the Web](https://github.com/oskarrough/slaythewe
 
 It is deployed and live on https://api.slaytheweb.cards
 
-It contains two API endpoints:
+It contains three API endpoints:
 
 ```
-GET /api/runs - returns all submitted runs
+GET /api/runs - returns all runs (but not all data per run)
+GET /api/runs/{id} - returns a single run
 POST /api/runs  - record a run
 ```
 
@@ -36,6 +37,12 @@ and finally, to run the development server:
 ```bash
 npm run dev
 ```
+
+## Schema
+
+There are two tables: `players` and `runs`. Every run stores a reference to the name of a player.
+
+There is no authentication, and player names are not protected. C'est la vie.
 
 ## More dev tips
 

@@ -46,8 +46,15 @@ There is no authentication, and player names are not protected. C'est la vie.
 
 ## More dev tips
 
-```
+Open an sqlite shell to the live database. `rare-neon` is the name of it in the Turso cloud..
+
+```bash
 turso db shell rare-neon
+```
+
+and then in the sqlite shell, for example:
+
+```sql
 .read schema.sql
 insert into players (name) values ('Jaw Worm')
 insert into runs (player, game_state) values ('Jaw Worm', '{turn: 42, hello: "world"}')

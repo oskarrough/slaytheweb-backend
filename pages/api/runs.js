@@ -1,5 +1,5 @@
 import Cors from 'cors'
-import { client } from '../../src/db'
+import { client, parseData } from '../../src/db'
 
 const cors = Cors({
 	methods: ['GET', 'POST', 'HEAD'],
@@ -21,27 +21,39 @@ export default async function handler(req, res) {
 	res.status(200).json({ msg: 'hm nop' })
 }
 
+// Returns a subset of the data for each run to keep it light(er).
 async function getRuns() {
 	const res = await client.execute(`
     select
       id, 
-      player, 
-      --json_extract(game_state, "$.createdAt") as createdAt,
-      --json_extract(game_state, "$.endedAt") as endedAt,
-      --json_extract(game_state, "$.turn") as turn, 
-      --json_extract(game_state, "$.won") as won, 
-      game_state as gameState
-      --game_past as gamePast
+      player,
+      json_extract(game_state, "$.createdAt") as createdAt,
+      json_extract(game_state, "$.endedAt") as endedAt,
+      json_extract(game_state, "$.dungeon.y") as floor, 
+      json_extract(game_state, "$.won") as won
     from runs
-    where game_state is not null
   `)
 	const parsed = parseData(res)
-	return parsed.map((run) => {
-		run.gameState = minimizeGameState(JSON.parse(run.gameState)) 
-		run.gamePast = JSON.parse(run.gamePast ?? '[]')
-		return run
-	})
+	return parsed
 }
+
+// Returns all the data
+// async function getRunsExtended() {
+// 	const res = await client.execute(`
+//     select
+//       id, 
+//       player,
+//       game_state as gameState,
+//       game_past as gamePast
+//     from runs
+//   `)
+// 	const parsed = parseData(res)
+// 	return parsed.map((run) => {
+// 		run.gameState = JSON.parse(run.gameState ?? '{}')
+// 		run.gamePast = JSON.parse(run.gamePast ?? '[]')
+// 		return run
+// 	})
+// }
 
 async function postRun(body) {
 	try {
@@ -78,24 +90,11 @@ function runMiddleware(req, res, fn) {
 	})
 }
 
-function parseData(input) {
-	const columns = input.columns
-	const rows = input.rows
-	return rows.map((row) => {
-		let obj = {}
-		for (let i = 0; i < columns.length; i++) {
-			obj[columns[i]] = row[i]
-		}
-		return obj
-	})
-}
-
 // Apparently it's too much data to send around, so I try to remove a bit.
 function minimizeGameState(state) {
 	const mini = {...state}
-	delete mini.dungeon?.graph
+	// delete mini.dungeon?.graph
 	delete mini.dungeon?.paths
-	delete mini.dungeon?.pathTaken
 	delete mini.drawPile
 	delete mini.hand
 	delete mini.discardPile

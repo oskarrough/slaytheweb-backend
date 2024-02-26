@@ -8,6 +8,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <p>Are you lost? Most probably.</p>
+      <p>Fear not, visit https://github.com/oskarrough/slaytheweb-backend</p>
     </div>
   )
 }

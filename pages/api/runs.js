@@ -9,8 +9,9 @@ export default async function handler(req, res) {
 	await runMiddleware(req, res, cors)
 
 	if (req.method === 'GET') {
+		const total = await getTotalRuns()
 		const runs = await getRuns()
-		return res.status(200).json({ runs })
+		return res.status(200).json({ total, runs })
 	}
 
 	if (req.method === 'POST') {
@@ -19,6 +20,11 @@ export default async function handler(req, res) {
 	}
 
 	res.status(200).json({ msg: 'hm nop' })
+}
+
+async function getTotalRuns() {
+	const res = await client.execute(`select count(id) as count from runs;`)
+	return res.rows[0].count
 }
 
 // Returns a subset of the data for each run to keep it light(er).

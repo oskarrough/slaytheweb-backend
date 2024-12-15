@@ -8,7 +8,6 @@ if (!TURSO_URL) res.status(500).json({error: 'Missing Turso URL'})
 
 export const client = createClient({url: TURSO_URL, authToken: TURSO_TOKEN})
 
-
 // Because the libsql client.execute returns an annoying format,
 // this parses it into an array of objects
 export function parseData(input) {

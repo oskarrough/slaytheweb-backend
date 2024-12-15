@@ -32,6 +32,8 @@ async function getRuns() {
       json_extract(game_state, "$.dungeon.y") as floor, 
       json_extract(game_state, "$.won") as won
     from runs
+		order by id desc
+		limit 200
   `)
 	const parsed = parseData(res)
 	return parsed

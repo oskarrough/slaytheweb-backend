@@ -1,10 +1,5 @@
-import Cors from 'cors'
 import { client, parseData } from '../../utils/db'
-import { runMiddleware } from '../../utils/cors-middleware'
-
-const cors = Cors({
-	methods: ['GET', 'POST', 'HEAD'],
-})
+import { runMiddleware, cors } from '../../utils/cors-middleware'
 
 export default async function handler(req, res) {
 	await runMiddleware(req, res, cors)
@@ -40,7 +35,6 @@ async function getRuns() {
       json_extract(game_state, "$.won") as won
     from runs
 		order by id desc
-		limit 200
   `)
 	const parsed = parseData(res)
 	return parsed

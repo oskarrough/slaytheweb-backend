@@ -1,9 +1,5 @@
 import { client, parseData } from '../../utils/db'
-import { runMiddleware } from '../../utils/cors-middleware'
-
-const cors = Cors({
-	methods: ['GET', 'POST', 'HEAD'],
-})
+import { runMiddleware, cors } from '../../utils/cors-middleware'
 
 export default async function handler(req, res) {
 	await runMiddleware(req, res, cors)

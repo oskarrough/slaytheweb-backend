@@ -1,15 +1,13 @@
 # Slay the Web backend
 
-A node.js backend API for [Slay the Web](https://github.com/oskarrough/slaytheweb) used to post and store highscores.
+A REST API for [Slay the Web](https://github.com/oskarrough/slaytheweb) to post and store highscores.
 
-It is deployed and live on https://api.slaytheweb.cards
-
-It contains three API endpoints:
+It is deployed and live on https://api.slaytheweb.cards with three endpoints:
 
 ```
 GET /api/runs - returns all runs (but not all data per run)
 GET /api/runs/{id} - returns a single run
-POST /api/runs  - record a run
+POST /api/runs  - stores a run
 ```
 
 ## How is it made?
@@ -43,6 +41,8 @@ npm run dev
 There are two tables: `players` and `runs`. Every run stores a reference to the name of a player.
 
 There is no authentication, and player names are not protected. C'est la vie.
+
+The run.game_state column isn't actually the FULL game state, rather a minimized version, see `minimizeGameState()`.
 
 ## More dev tips
 

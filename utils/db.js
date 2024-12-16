@@ -1,15 +1,15 @@
 import { createClient } from '@libsql/client'
 
+// Make sure we have the two required environment variables
 const TURSO_URL = process.env.TURSO_URL
 const TURSO_TOKEN = process.env.TURSO_TOKEN
-
 if (!TURSO_TOKEN) res.status(500).json({error: 'Missing Turso token'})
 if (!TURSO_URL) res.status(500).json({error: 'Missing Turso URL'})
 
+// Create a new libsql client
 export const client = createClient({url: TURSO_URL, authToken: TURSO_TOKEN})
 
-// Because the libsql client.execute returns an annoying format,
-// this parses it into an array of objects
+// Because the libsql client.execute returns an annoying format this parses it into an array of objects
 export function parseData(input) {
 	const columns = input.columns
 	const rows = input.rows
@@ -21,4 +21,3 @@ export function parseData(input) {
 		return obj
 	})
 }
-

@@ -1,5 +1,6 @@
 import Cors from 'cors'
-import { client, parseData } from '../../src/db'
+import { client, parseData } from '../../utils/db'
+import { runMiddleware } from '../../utils/cors-middleware'
 
 const cors = Cors({
 	methods: ['GET', 'POST', 'HEAD'],
@@ -45,24 +46,6 @@ async function getRuns() {
 	return parsed
 }
 
-// Returns all the data
-// async function getRunsExtended() {
-// 	const res = await client.execute(`
-//     select
-//       id, 
-//       player,
-//       game_state as gameState,
-//       game_past as gamePast
-//     from runs
-//   `)
-// 	const parsed = parseData(res)
-// 	return parsed.map((run) => {
-// 		run.gameState = JSON.parse(run.gameState ?? '{}')
-// 		run.gamePast = JSON.parse(run.gamePast ?? '[]')
-// 		return run
-// 	})
-// }
-
 async function postRun(body) {
 	try {
 		const what = await client.batch([
@@ -83,19 +66,6 @@ async function postRun(body) {
 	} catch (e) {
 		console.error(e)
 	}
-}
-
-// Helper method to wait for a middleware to execute before continuing
-// And to throw an error when an error happens in a middleware
-function runMiddleware(req, res, fn) {
-	return new Promise((resolve, reject) => {
-		fn(req, res, (result) => {
-			if (result instanceof Error) {
-				return reject(result)
-			}
-			return resolve(result)
-		})
-	})
 }
 
 // Apparently it's too much data to send around, so I try to remove a bit.

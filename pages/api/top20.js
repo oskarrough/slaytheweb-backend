@@ -1,9 +1,17 @@
-import { client, parseData } from '../../src/db'
+import { client, parseData } from '../../utils/db'
+import { runMiddleware } from '../../utils/cors-middleware'
+
+const cors = Cors({
+	methods: ['GET', 'POST', 'HEAD'],
+})
 
 export default async function handler(req, res) {
+	await runMiddleware(req, res, cors)
+
 	if (req.method !== 'GET') {
 		res.status(400).json({ msg: 'only GET requests allowed' })
 	}
+
 	const results = await query()
 	return res.status(200).json(results)
 }
@@ -23,4 +31,3 @@ async function query() {
 	let parsed = parseData(res)
 	return parsed
 }
-

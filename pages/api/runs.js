@@ -51,7 +51,7 @@ async function postRun(body) {
 				sql: 'insert into runs (player, game_state, game_past) values(:player, :gameState, :gamePast)',
 				args: {
 					player: body.player,
-					gameState: JSON.stringify(minimizeGameState(body.gameState)),
+					gameState: JSON.stringify(body.gameState),
 					gamePast: JSON.stringify(body.gamePast),
 				},
 			},
@@ -62,17 +62,3 @@ async function postRun(body) {
 	}
 }
 
-// Apparently it's too much data to send around, so I try to remove a bit.
-function minimizeGameState(state) {
-	const mini = {...state}
-	// delete mini.dungeon?.graph
-	delete mini.dungeon?.paths
-	delete mini.drawPile
-	delete mini.hand
-	delete mini.discardPile
-	delete mini.exhaustPile
-	mini.deck = mini.deck.map(card => {
-		return card.name
-	})
-	return mini
-}

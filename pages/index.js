@@ -8,7 +8,7 @@ export default function Home() {
         <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
       </Head>
       <p>Are you lost? Most probably.</p>
-      <p>Fear not, visit https://github.com/oskarrough/slaytheweb-backend</p>
+      <p>Fear not, visit <a href="https://github.com/oskarrough/slaytheweb-backend">github.com/oskarrough/slaytheweb-backend</a></p>
     </div>
   )
 }

@@ -1,22 +1,17 @@
 {
-  "name": "slaytheweb-backend",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "@libsql/client": "^0.15.2",
-    "cors": "^2.8.5",
-    "next": "15.2.4",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
-  },
-  "devDependencies": {
-    "eslint": "9.24.0",
-    "eslint-config-next": "15.2.4"
-  }
+	"name": "slaytheweb-backend",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "wrangler dev",
+		"deploy": "wrangler deploy",
+		"check": "biome check --write"
+	},
+	"dependencies": {
+		"@libsql/client": "^0.15.2"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.3.13",
+		"wrangler": "^4.0.0"
+	}
 }

@@ -16,21 +16,13 @@ A Node.js API (built with [Next.js](https://nextjs.org/)) which connects to a re
 
 ## Development
 
-Link the project with Vercel in order to get the environment variables:
+Copy `.env.example` to `.env` and add your Turso token. Or pull from Vercel:
 
 ```bash
-vercel link
+vercel link && vercel env pull .env
 ```
 
-followed by
-
-```bash
-vercel env pull .env.local
-```
-
-you should see `TURSO_URL` and `TURSO_TOKEN`.
-
-and finally, to run the development server:
+Run the dev server:
 
 ```bash
 npm run dev
@@ -38,31 +30,42 @@ npm run dev
 
 ## Schema
 
-There are two tables: `players` and `runs`. Every run stores a reference to the name of a player.
+Two tables: `players` and `runs`. No authentication, player names are not protected.
 
-There is no authentication, and player names are not protected. C'est la vie.
+```sql
+players(name TEXT PRIMARY KEY, created_at INTEGER)
+runs(id INTEGER PRIMARY KEY, created_at INTEGER, player TEXT, won INTEGER, game_state BLOB, game_past BLOB)
+```
 
-The run.game_state column isn't actually the FULL game state, rather a minimized version, see `minimizeGameState()`.
+Note: `game_state` is minimized via `minimizeGameState()`, not the full state.
 
-## More dev tips
+## Query tools
 
-Open an sqlite shell to the live database. `rare-neon` is the name of it in the Turso cloud..
+Run SQL directly against Turso (requires `.env` with `TURSO_URL` and `TURSO_TOKEN`):
+
+```bash
+bun query.js "SELECT * FROM runs ORDER BY id DESC LIMIT 5"
+bun query.js "SELECT count(*) FROM players"
+```
+
+Local analytics (synced subset without blobs):
+
+```bash
+bun runs.js sync    # fetch latest from API
+bun runs.js stats   # show stats
+bun runs.js top     # top players
+bun runs.js daily   # runs per day
+bun runs.js query "SELECT ..."
+```
+
+## Turso shell
 
 ```bash
 turso db shell rare-neon
 ```
 
-and then in the sqlite shell, for example:
+## Local testing
 
-```sql
-.read schema.sql
-insert into players (name) values ('Jaw Worm')
-insert into runs (player, game_state) values ('Jaw Worm', '{turn: 42, hello: "world"}')
-select * from runs;
-```
-
-if the server is running locally, you can do:
-
-```
-curl -X POST --header 'Content-Type: application/json' -d '{"player": "XX", "won": 1}' http://localhost:3000/api/runs
+```bash
+curl -X POST -H 'Content-Type: application/json' -d '{"player": "XX", "won": 1}' http://localhost:3000/api/runs
 ```

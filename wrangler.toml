@@ -1,0 +1,7 @@
+name = "slaytheweb-api"
+main = "worker/index.js"
+compatibility_date = "2024-01-01"
+
+# TURSO_URL and TURSO_TOKEN should be set as secrets:
+# wrangler secret put TURSO_URL
+# wrangler secret put TURSO_TOKEN

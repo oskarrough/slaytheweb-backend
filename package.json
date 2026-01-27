@@ -1,16 +1,17 @@
 {
-  "name": "slaytheweb-backend",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "deploy build"
-  },
-  "dependencies": {
-    "@libsql/client": "^0.15.2",
-    "cors": "^2.8.5"
-  },
-  "devDependencies": {
-    "eslint": "9.24.0"
-  }
+	"name": "slaytheweb-backend",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "wrangler dev",
+		"deploy": "wrangler deploy",
+		"check": "biome check --write"
+	},
+	"dependencies": {
+		"@libsql/client": "^0.15.2"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.3.13",
+		"wrangler": "^4.0.0"
+	}
 }

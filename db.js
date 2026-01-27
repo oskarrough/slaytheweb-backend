@@ -13,7 +13,7 @@ export function parseData(input) {
 	const columns = input.columns
 	const rows = input.rows
 	return rows.map((row) => {
-		let obj = {}
+		const obj = {}
 		for (let i = 0; i < columns.length; i++) {
 			obj[columns[i]] = row[i]
 		}

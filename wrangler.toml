@@ -1,7 +1,13 @@
 name = "slaytheweb-api"
 main = "worker.js"
-compatibility_date = "2026-01-25"
+compatibility_date = "2026-05-26"
 
 # TURSO_URL and TURSO_TOKEN should be set as secrets:
 # wrangler secret put TURSO_URL
 # wrangler secret put TURSO_TOKEN
+
+# Workers Logs: surfaces console.error + invocation logs in the dashboard
+# (so a broken write path like the read-only-token bug is visible, not silent)
+[observability.logs]
+enabled = true
+invocation_logs = true

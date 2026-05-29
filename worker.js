@@ -43,7 +43,7 @@ export default {
 				const limit =
 					limitParam === '0'
 						? null
-						: Math.min(parseInt(limitParam) || 100, 1000)
+						: Math.min(parseInt(limitParam, 10) || 100, 1000)
 				const total = await getTotalRuns(client)
 				const runs = await getRuns(client, limit)
 				return json({ total, runs })

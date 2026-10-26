@@ -67,5 +67,5 @@ turso db shell rare-neon
 ## Local testing
 
 ```bash
-curl -X POST -H 'Content-Type: application/json' -d '{"player": "XX", "won": 1}' http://localhost:3000/api/runs
+curl -X POST -H 'Content-Type: application/json' -d '{"player": "XX", "gameState": {"dungeon": {}, "deck": [], "createdAt": 1, "endedAt": 2}, "gamePast": []}' http://localhost:3000/api/runs
 ```

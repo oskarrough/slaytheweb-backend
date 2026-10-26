@@ -1,3 +1,4 @@
+import { z } from 'zod'
 import { createTursoClient, parseData } from './db.js'
 
 // CORS headers
@@ -6,6 +7,17 @@ const corsHeaders = {
 	'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 	'Access-Control-Allow-Headers': 'Content-Type',
 }
+
+const runSchema = z.object({
+	player: z.string().min(1),
+	gameState: z.looseObject({
+		dungeon: z.looseObject({}),
+		deck: z.array(z.string()),
+		createdAt: z.number(),
+		endedAt: z.number(),
+	}),
+	gamePast: z.array(z.unknown()),
+})
 
 // JSON response helper
 function json(data, status = 200) {
@@ -58,14 +70,13 @@ export default {
 					return json({ error: 'Invalid JSON body' }, 400)
 				}
 
-				if (!body.player || typeof body.player !== 'string') {
-					return json({ error: 'Missing or invalid player name' }, 400)
-				}
-				if (!body.gameState || typeof body.gameState !== 'object') {
-					return json({ error: 'Missing or invalid gameState' }, 400)
+				const run = runSchema.safeParse(body)
+				if (!run.success) {
+					const path = run.error.issues[0].path.join('.')
+					return json({ error: `Missing or invalid ${path}` }, 400)
 				}
 
-				const result = await postRun(client, body)
+				const result = await postRun(client, run.data)
 				return json({ msg: 'ok', result })
 			}
 
@@ -140,7 +151,7 @@ async function postRun(client, body) {
 			args: {
 				player: body.player,
 				gameState: JSON.stringify(body.gameState),
-				gamePast: JSON.stringify(body.gamePast ?? []),
+				gamePast: JSON.stringify(body.gamePast),
 			},
 		},
 	])
